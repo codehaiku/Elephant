@@ -29,6 +29,29 @@ if ( 'export' === $method ) {
 	
 	echo 'Processing import ...';
 
+} elseif( 'delete' === $method ) {
+
+	$demo_path = get_option( 'elephant_exported_zip_path' );
+
+	if ( $demo_path ) {
+
+		if ( file_exists( $demo_path  ) ) {
+			@unlink( $demo_path );
+		}
+		
+		$stored_option_keys = array( 'elephant_exported_dir_path',
+									 'elephant_exported_zip_path',
+									 'elephant_exported_zip_file',
+									 'elephant_exported_zip_file_timestamp' );
+
+		foreach ( $stored_option_keys as $option ) {
+			delete_option( $option );
+		}
+
+	}
+
+	wp_safe_redirect( admin_url( 'tools.php?page=elephant-import-page' ) );
+
 } else {
 
 	echo 'Undefine action ...';

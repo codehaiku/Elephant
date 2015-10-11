@@ -1,5 +1,24 @@
 <?php
 
+function elephant_delete( $dir ) {
+
+    $it = new RecursiveDirectoryIterator( $dir, RecursiveDirectoryIterator::SKIP_DOTS );
+    $files = new RecursiveIteratorIterator( $it,
+                 RecursiveIteratorIterator::CHILD_FIRST );
+
+    foreach ( $files as $file ) {
+        
+        if ( $file->isDir() ) {
+            rmdir( $file->getRealPath() );
+        } else {
+            unlink( $file->getRealPath() );
+        }
+    }
+
+    rmdir($dir);
+
+}
+
 function elephant_zip( $source, $destination )
 {
     if (!extension_loaded('zip') || !file_exists($source)) {
@@ -120,8 +139,13 @@ function elephant_export_state() {
                     
                     $timestamp = date( 'F j, Y H:i:s', current_time( 'timestamp', 0 ) );
 
+                    update_option( 'elephant_exported_dir_path',  WP_CONTENT_DIR . '/' . $dir_name  );
+                    update_option( 'elephant_exported_zip_path',  WP_CONTENT_DIR . '/' . $dir_name . '.zip'  );
                     update_option( 'elephant_exported_zip_file',  content_url() . '/' . $dir_name . '.zip'  );
                     update_option( 'elephant_exported_zip_file_timestamp', $timestamp );
+
+                    // delete the directory after zipping it
+                    elephant_delete( WP_CONTENT_DIR . '/' . $dir_name );
 
                 } else {
 

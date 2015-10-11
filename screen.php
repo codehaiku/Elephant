@@ -50,7 +50,9 @@
 
 				<a href="<?php echo get_option('elephant_exported_zip_file'); ?>">(Download) </a>
 				|
-				<a onclick="return confirm('You are about to delete the export file. Please confirm. Thanks!');" href="#">Delete</a>
+				<?php $delete_url = admin_url('admin-ajax.php?action=elepant_processor&method=delete'); ?>
+				
+				<a onclick="return confirm('You are about to delete the export file. Please confirm. Thanks!');" href="<?php echo esc_url( $delete_url ); ?>">Delete</a>
 			</p>
 
 		<?php } ?>
