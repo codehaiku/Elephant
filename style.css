@@ -9,6 +9,13 @@ div#elephant-instruction-card p {
     text-align: justify;
 }
 
+div#elephant-instruction-card p#elephant-exported-zip-link {
+	font-weight: bold;
+	color: green;
+	font-style: italic;
+	font-size: 14px;
+}
+
 div#elephant-demo-selection-list ul {
 	display: inline-block;
 }
