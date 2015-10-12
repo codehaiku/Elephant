@@ -6,7 +6,6 @@
  */
 defined( 'ABSPATH' ) or die('No script kiddies please!');
 
-
 if ( empty( $_FILES ) ) { die('Unable to import empty file.'); }
 
 if ( empty( $_FILES['demo_file'] ) ) { die('Unable to import empty file. "demo_file" argument not found.'); }
@@ -33,11 +32,14 @@ if ( ! move_uploaded_file( $file_tmp,  $file_uploaded_location ) ) {
 }
 
 WP_Filesystem();
-// Try unzipping the file
-unzip_file( $file_uploaded_location, ELEPHANT_EXPORT_DIR );
 
-$import = new ElephantImport();
-$import->import();
+// Try unzipping the file
+if ( unzip_file( $file_uploaded_location, ELEPHANT_EXPORT_DIR ) ) {
+	
+	$import = new ElephantImport();
+	$import->import();
+
+}
 
 //elephant_delete( ELEPHANT_EXPORT_DIR );
 

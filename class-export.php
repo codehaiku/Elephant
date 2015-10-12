@@ -22,7 +22,6 @@ class ElephantExport {
 		$option_filter .= " AND option_name <> 'admin_email'";
 		$option_filter .= " AND option_name <> 'template'";
 		$option_filter .= " AND option_name <> 'stylesheet'";
-		$option_filter .= " AND option_name <> 'admin_email'";
 		
 		$options = serialize( $wpdb->get_results( "SELECT * from {$wpdb->prefix}options WHERE {$option_filter}", ARRAY_A ) );
 
