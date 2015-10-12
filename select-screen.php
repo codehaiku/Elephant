@@ -8,20 +8,30 @@
  */
 ?>
 <div class="wrap">
+	
 	<div id="icon-tools" class="icon32"></div>
+
 	<h2>
 		
-		<?php _e('Import Demo', 'elephant'); ?>
+		<?php _e('Select Demo', 'elephant'); ?>
 		
 		<?php $export_process_screen = ''; ?>
 		<?php $export_url = 'admin-ajax.php?action=elepant_processor&method=export'; ?>
+
+
+		<a href="<?php echo admin_url( 'tools.php?page=elephant-import-page' ); ?>" class="page-title-action">
+			<?php _e( 'Import Demo', '' ); ?>
+		</a>
+
 
 		<a href="<?php echo esc_url( $export_url ); ?>" class="page-title-action">
 			<?php _e( 'Export as New Demo', '' ); ?>
 		</a>
 
 	</h2>
+	
 	<div id="elephant-instruction-card">
+
 		<p>
 			<?php 
 				_e(
@@ -47,11 +57,16 @@
 				<?php $file_time_diff = human_time_diff( strtotime( $last_exported ), current_time('timestamp') ) . ' ago'; ?>
 
 				<?php echo sprintf( __('Demo Last Exported on %s: ', 'elephant'), '<u>'. $file_time_diff .'</u>' ); ?>
+				<br/>
+				<span class="dashicons dashicons-admin-links"></span>
 
-				<a href="<?php echo get_option('elephant_exported_zip_file'); ?>">(Download) </a>
+				<a href="<?php echo get_option('elephant_exported_zip_file'); ?>">
+					Download <?php echo get_option('elephant_exported_zip_file'); ?>
+				</a>
 				|
 				<?php $delete_url = admin_url('admin-ajax.php?action=elepant_processor&method=delete'); ?>
-				
+
+				<span class="dashicons dashicons-trash"></span> 
 				<a onclick="return confirm('You are about to delete the export file. Please confirm. Thanks!');" href="<?php echo esc_url( $delete_url ); ?>">Delete</a>
 			</p>
 

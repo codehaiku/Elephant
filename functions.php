@@ -66,6 +66,8 @@ function elephant_zip( $source, $destination )
 
 function elephant_export_state() {
 
+    global $wpdb;
+
     require_once plugin_dir_path( __FILE__ ) . 'dumper.php';
 
     // Step 1: Export Local WordPress Database.
@@ -91,7 +93,11 @@ function elephant_export_state() {
 
             $sql_file = $new_dir . '/' . $dir_name . '.sql';
 
-            $dump = new Ifsnop\Mysqldump\Mysqldump( "mysql:host=$host;dbname=$dbname", $username, $password );
+            $settings = array(
+                    'exclude-tables' => array( $wpdb->prefix . 'options' )
+                );
+
+            $dump = new Ifsnop\Mysqldump\Mysqldump( "mysql:host=$host;dbname=$dbname", $username, $password, $settings );
 
             if ( chmod( $new_dir, 0777 ) ) {
 
@@ -103,6 +109,10 @@ function elephant_export_state() {
                 // Next, copy uploads dir.
                 $new_uploads_dir = WP_CONTENT_DIR . '/' . $dir_name . '/uploads';
                 
+                $export = new ElephantExport();
+
+                $export->export_options_table();
+
                 if ( wp_mkdir_p( $new_uploads_dir ) ) {
 
                     copy_dir(
@@ -176,4 +186,25 @@ function elephant_export_state() {
     }
 
     return true;
+}
+
+function elephant_import_theme_mod()
+{
+    
+    $theme_mod_json_url = "http://localhost/elephant/wp-content/elephant-dev-twenty-fifteen/theme_mods.txt";
+
+    try {
+        $theme_mod_json = wp_remote_get( $theme_mod_json_url );
+    } catch ( Exception $e ) {
+        $theme_mod_json = "";
+    } 
+
+    if ( !empty( $theme_mod_json ) ) {
+        $theme_mod_json = unserialize( $theme_mod_json['body'] );
+        foreach ( $theme_mod_json as $key => $value ) {
+            set_theme_mod( $key, $value );
+        }
+    }
+
+    return;
 }

@@ -10,20 +10,13 @@ if ( 'export' === $method ) {
 	
 	if ( elephant_export_state() ) {
 		
-		wp_safe_redirect( admin_url( 'tools.php?page=elephant-import-page' ) );
+		wp_safe_redirect( admin_url( 'tools.php?page=elephant-select-page' ) );
 
 	} else {
 
 		die( 'unable to export file ');
 
 	}
-	
-	// Step 2: Uploading WordPress Files to Live Site
-	
-	// Step 3: Creating MySQL Database on Live Site
-	// Step 4: Importing WordPress Database on Live Site
-	// Step 5: Changing the Site URL
-	// Step 6: Setting Up your Live Site
 
 } elseif( 'import' === $method ) {
 	
@@ -36,7 +29,9 @@ if ( 'export' === $method ) {
 	if ( $demo_path ) {
 
 		if ( file_exists( $demo_path  ) ) {
+
 			@unlink( $demo_path );
+			
 		}
 		
 		$stored_option_keys = array( 'elephant_exported_dir_path',
