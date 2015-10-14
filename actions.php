@@ -10,7 +10,7 @@ if ( 'export' === $method ) {
 	
 	if ( elephant_export_state() ) {
 		
-		wp_safe_redirect( admin_url( 'tools.php?page=elephant-select-page' ) );
+		wp_safe_redirect( admin_url( 'tools.php?page=elephant-select-page&export-success=yes' ) );
 
 	} else {
 
@@ -45,7 +45,7 @@ if ( 'export' === $method ) {
 
 	}
 
-	wp_safe_redirect( admin_url( 'tools.php?page=elephant-import-page' ) );
+	wp_safe_redirect( admin_url( 'tools.php?page=elephant-select-page' ) );
 
 } else {
 

@@ -46,6 +46,17 @@
 			?>
 			
 		</p>
+
+		<?php $export_success = filter_input(INPUT_GET, 'export-success', FILTER_SANITIZE_SPECIAL_CHARS); ?>
+	
+		<?php if ( "yes" === $export_success ) { ?>
+			<div id="export-message" class="updated notice is-dismissible">
+				<p>
+					<?php _e('Export has been successfully executed. Download the file below.', 'elephant'); ?>
+				</p>
+			</div>
+		<?php } ?>
+
 		<?php if ( get_option('elephant_exported_zip_file') ) { ?>
 
 			<p id="elephant-exported-zip-link">
@@ -75,31 +86,41 @@
 
 	<div id="elephant-demo-selection-list">
 		
-		<ul>
-			<?php foreach ( elephant_demos() as $demo ) { ?>
+		<?php $demo = elephant_demos(); ?>
 
-				<li class="list-item">
-					
-					<div class="list-item-thumbnail">
-						<img src="<?php echo $demo['thumbnail']; ?>" alt="<?php echo $demo['label']; ?>" />
-					</div>
+		<?php if ( !empty( $demo ) ) { ?>
+			<ul>
+				<?php foreach ( $demos as $demo ) { ?>
 
-					<div class="list-item-details">
+					<li class="list-item">
 						
-						<div class="list-item-description">
-							<h3><?php echo $demo['label']; ?></h3>
-								<p><?php echo $demo['desc']; ?></p>
+						<div class="list-item-thumbnail">
+							<img src="<?php echo $demo['thumbnail']; ?>" alt="<?php echo $demo['label']; ?>" />
 						</div>
 
-						<div class="list-item-actions">
-							<a href="#" class="button button-primary list-item-download">Download</a>
-							<a href="#" class="button list-item-download">Preview</a>
+						<div class="list-item-details">
+							
+							<div class="list-item-description">
+								<h3><?php echo $demo['label']; ?></h3>
+									<p><?php echo $demo['desc']; ?></p>
+							</div>
+
+							<div class="list-item-actions">
+								<a href="#" class="button button-primary list-item-download">Download</a>
+								<a href="#" class="button list-item-download">Preview</a>
+							</div>
 						</div>
-					</div>
 
-				</li>
-			<?php } ?>
-		</ul>
-
+					</li>
+				<?php } ?>
+			</ul>
+		<?php } else {  ?>
+			<div id="message" class="error notice is-dismissible">
+				<p>
+					<?php _e('There are no demos that are curretly define in your theme. If you are the developer of this theme, you can add "elephant_demos" filter in your functions.php'); ?>
+				</p>
+			</div>
+		<?php } ?>
 	</div>
+	
 </div>

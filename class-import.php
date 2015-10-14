@@ -4,11 +4,13 @@ class ElephantImport {
 
 	var $options_uri  = "http://";
 	var $options_path = "";
+	var $sql_path = "";
 
 	public function __construct() {
 
-		$this->options_uri = ELEPHANT_EXPORT_URL . '/' . ELEPHANT_EXPORT_NAME . '_wp_options.txt';
-		$this->options_path = ELEPHANT_EXPORT_PATH . '/' . ELEPHANT_EXPORT_NAME . '_wp_options.txt';
+		$this->options_uri  = ELEPHANT_IMPORT_URL . '/' . 'wp_options.txt';
+		$this->options_path = ELEPHANT_IMPORT_DIR . '/' . 'wp_options.txt';
+		$this->sql_path     = ELEPHANT_IMPORT_DIR . '/' . 'data.sql';
 
 		return;
 	}
@@ -55,14 +57,15 @@ class ElephantImport {
 		$templine = '';
 		
 		// Read in entire file
-		$lines = file( $filename );
+
+		$lines = file( $this->sql_path );
 
 		// Loop through each line
 		foreach ( $lines as $line )
 		{
 
 			// Skip it if it's a comment
-			if ( substr( $line, 0, 2 ) == '--' || $line == '')
+			if ( substr( $line, 0, 3 ) === "/*!" || substr( $line, 0, 2 ) == '--' || $line == '')
 			    continue;
 
 			// Add this line to the current segment
@@ -71,8 +74,8 @@ class ElephantImport {
 			if (substr(trim($line), -1, 1) == ';')
 			{
 			    // Perform the query
-			   // echo $templine . '<br/>';
-			    //$wpdb->query($templine) or print('Error performing query \'<strong>' . $templine . '\': ' . mysql_error() . '<br /><br />');
+			    $templine . '<br/>';
+			    $wpdb->query( $templine ) or print('Error performing query \'<strong>' . $templine . '\': ' . mysql_error() . '<br /><br />');
 			    // Reset temp variable to empty
 			    $templine = '';
 			}
@@ -82,6 +85,10 @@ class ElephantImport {
 	}
 
 	public function copy_files(){
+
+		copy_dir( ELEPHANT_IMPORT_DIR . '/uploads', WP_CONTENT_DIR . '/uploads' );
+
+		return $this;
 
 	}
 

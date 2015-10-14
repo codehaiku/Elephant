@@ -3,6 +3,7 @@
 function elephant_delete( $dir ) {
 
     $it = new RecursiveDirectoryIterator( $dir, RecursiveDirectoryIterator::SKIP_DOTS );
+
     $files = new RecursiveIteratorIterator( $it,
                  RecursiveIteratorIterator::CHILD_FIRST );
 
@@ -26,7 +27,8 @@ function elephant_zip( $source, $destination )
     }
 
     $zip = new ZipArchive();
-    if (!$zip->open($destination, ZIPARCHIVE::CREATE)) {
+
+    if ( !$zip->open($destination, ZIPARCHIVE::CREATE) ) {
         return false;
     }
 
@@ -86,76 +88,94 @@ function elephant_export_state() {
         $plugins_dir = plugin_dir_path( __DIR__ );
         
         // Create directory.
-        if ( wp_mkdir_p(  WP_CONTENT_DIR .'/'. $dir_name ) ) {
+        if ( wp_mkdir_p(  ELEPHANT_EXPORT_DIR ) ) {
             
             // The name of the directory we will put our sql file
-            $new_dir = WP_CONTENT_DIR .'/'. $dir_name;
+            $new_dir = ELEPHANT_EXPORT_DIR;
 
-            $sql_file = $new_dir . '/' . $dir_name . '.sql';
+            $sql_file = $new_dir . '/data.sql';
 
             $settings = array(
-                    'exclude-tables' => array( $wpdb->prefix . 'options' )
+                    'exclude-tables' => array( $wpdb->prefix . 'options' ),
+                    'add-drop-table' => true,
+                    'add-locks' => false,
+                    'no-autocommit' => false
                 );
+
+            $user_data = $wpdb->get_row( 
+                sprintf( "SELECT user_login, user_pass FROM {$wpdb->users} WHERE ID = %d", 
+                          ELEPHANT_USER_ADMIN_ID ) 
+                , OBJECT );
+
+            if ( empty( $user_data ) ) {
+                die( 'Unable to get administrator ID. Exiting ...');
+            }
+
+            $old_admin_username = $user_data->user_login;
+            $old_admin_password = $user_data->user_pass;
+
+            // change admin password first temporarily
+            $tmp_pass = '$P$BrsxepzTZeY9YzAHrQROcOJNaZiTWI1'; //demo123.
+            $wpdb->update( 
+                $wpdb->users, 
+                array(
+                    'user_login' => 'demo',     // String format.
+                    'user_pass'  => $tmp_pass   // String format.
+                ), 
+                array( 'ID' => ELEPHANT_USER_ADMIN_ID ), 
+                array( 
+                    '%s',   // User login.
+                    '%s'    // User password.
+                ), 
+                array( '%d' ) // SQL WHERE clause.
+            );
 
             $dump = new Ifsnop\Mysqldump\Mysqldump( "mysql:host=$host;dbname=$dbname", $username, $password, $settings );
 
-            if ( chmod( $new_dir, 0777 ) ) {
+            if ( chmod( ELEPHANT_EXPORT_DIR, 0777 ) ) {
 
                 WP_Filesystem();
 
                 // Dump the sql file.
                 @$dump->start( $sql_file );
-                
-                // Next, copy uploads dir.
-                $new_uploads_dir = WP_CONTENT_DIR . '/' . $dir_name . '/uploads';
+
+                // After dumping the sql file, change the username and password back.
+                $wpdb->update( 
+                    $wpdb->users, 
+                    array(
+                        'user_login' => $old_admin_username,  // String format.
+                        'user_pass'  => $old_admin_password   // String format.
+                    ), 
+                    array( 'ID' => ELEPHANT_USER_ADMIN_ID ), 
+                    array( 
+                        '%s',   // User login.
+                        '%s'    // User password.
+                    ), 
+                    array( '%d' ) // SQL WHERE clause.
+                );
                 
                 $export = new ElephantExport();
 
+                // Export wp_options table.
                 $export->export_options_table();
 
-                if ( wp_mkdir_p( $new_uploads_dir ) ) {
-
-                    copy_dir(
-
-                        $wp_upload_dir['basedir'], $new_uploads_dir, 
-
-                        $skip_list = array( $wp_upload_dir['path'] . '/' . $dir_name )
-
-                    );
-
-                } else {
-
-                    die( 'Unable to move "uploads" dir' );
-
-                }
-
-                // Next, copy the plugins dir.
-                $new_plugins_dir =  WP_CONTENT_DIR . '/' . $dir_name . '/plugins';
-                
-                if ( wp_mkdir_p( $new_plugins_dir ) ) {
-
-                    copy_dir( $plugins_dir, $new_plugins_dir, $skip_list = array() );
-
-                } else {
-
-                    die( 'Unable to copy ' . $plugins_dir . ' to ' . $new_plugins_dir );
-
-                }
+                // Next, copy uploads dir.
+                $export->export_attachment_files();
 
                 // Next, zip the file.
-                $zip_location = WP_CONTENT_DIR .'/'. $dir_name . '.zip';
-
-                if ( elephant_zip( WP_CONTENT_DIR .'/'. $dir_name, $zip_location, true ) ) {
+                $zip_location = ELEPHANT_EXPORT_DIR . '.zip';
+                
+                if ( elephant_zip( ELEPHANT_EXPORT_DIR, $zip_location, true ) ) {
                     
                     $timestamp = date( 'F j, Y H:i:s', current_time( 'timestamp', 0 ) );
 
-                    update_option( 'elephant_exported_dir_path',  WP_CONTENT_DIR . '/' . $dir_name  );
-                    update_option( 'elephant_exported_zip_path',  WP_CONTENT_DIR . '/' . $dir_name . '.zip'  );
-                    update_option( 'elephant_exported_zip_file',  content_url() . '/' . $dir_name . '.zip'  );
+                    update_option( 'elephant_exported_dir_path',  WP_CONTENT_DIR . '/' . ELEPHANT_EXPORT_NAME  );
+                    update_option( 'elephant_exported_zip_path',  WP_CONTENT_DIR . '/' . ELEPHANT_EXPORT_NAME . '.zip'  );
+                    update_option( 'elephant_exported_zip_file',  content_url() . '/'  . ELEPHANT_EXPORT_NAME . '.zip'  );
                     update_option( 'elephant_exported_zip_file_timestamp', $timestamp );
 
                     // delete the directory after zipping it
-                    elephant_delete( WP_CONTENT_DIR . '/' . $dir_name );
+                    elephant_delete( ELEPHANT_EXPORT_DIR );
 
                 } else {
 
